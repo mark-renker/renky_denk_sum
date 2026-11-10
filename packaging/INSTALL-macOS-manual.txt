@@ -1,0 +1,9 @@
+RenkySum - manual macOS install (if you prefer not to use the .pkg)
+
+1. Copy "RenkySum.component" to ~/Library/Audio/Plug-Ins/Components/
+2. Copy "RenkySum.vst3" to ~/Library/Audio/Plug-Ins/VST3/
+3. Optionally copy "RenkySum.app" (standalone) to /Applications
+4. Because the bundles were downloaded (not installed by a .pkg), macOS quarantines them. Clear that once:
+      xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/Components/RenkySum.component \
+                                     ~/Library/Audio/Plug-Ins/VST3/RenkySum.vst3
+5. Rescan plug-ins in your DAW. The plug-in appears under "Renky Denk".

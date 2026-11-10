@@ -8,3 +8,6 @@ RenkySum/Builds/iOS/
 faustAUtmp.*/
 *.o
 .DS_Store
+# CMake builds and installer output
+build*/
+dist/

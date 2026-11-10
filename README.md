@@ -5,6 +5,21 @@ Sonimus Satson, Waves NLS, and airwindows Console — but with an adjustable
 harmonic-distortion amount, a **3D Depth** control, and per-instance
 **component tolerances** so every track gets its own subtly different strip.
 
+## Install (no build needed)
+
+Grab the latest files from the **[Releases page](../../releases/latest)**:
+
+* **macOS** (11 or later, Apple Silicon and Intel): download `RenkySum-<version>-macOS.pkg` and open it. If
+  Gatekeeper objects (the installer is not notarized), right-click the file and choose *Open*. Tick the formats you
+  want (AU, VST3, standalone app); they go to `/Library/Audio/Plug-Ins` and `/Applications`. Rescan plug-ins in
+  your DAW. Prefer not to run an installer? `RenkySum-<version>-macOS-bundles.zip` has the raw bundles and a
+  manual-install note.
+* **Windows** (x64, when the CI build succeeds): download `RenkySum-<version>-Windows-x64.zip`, unzip, copy the
+  `RenkySum.vst3` folder to `C:\Program Files\Common Files\VST3\`.
+
+The plug-in shows up under **Renky Denk › RenkySum**. Every tagged release is built by
+`.github/workflows/release.yml`; `packaging/make_installer.sh` makes the same `.pkg` locally.
+
 ## The idea
 
 Drop one instance on every track in Ableton, set each instance to a different
@@ -79,17 +94,25 @@ exaggerated — and Auto Gain keeps A/B comparisons loudness-honest.
    but skips the interaction trick).
 3. A/B with Auto Gain on so loudness bias doesn't fool you.
 
-## Build
+## Build from source
 
-Requires [Faust](https://faust.grame.fr) (`brew install faust`) and JUCE.
+`RenkySum/FaustPluginProcessor.cpp` is the committed faust2juce output of `RenkySum.dsp`, so a plain CMake + JUCE
+build needs no Faust (JUCE 8.0.6 is used from `~/JUCE` if present, otherwise fetched):
 
 ```sh
-faust2juce -jucemodulesdir ~/JUCE/modules RenkySum.dsp
-~/JUCE/Projucer.app/Contents/MacOS/Projucer --resave RenkySum/RenkySum.jucer
-cd RenkySum/Builds/MacOSX
-xcodebuild -project RenkySum.xcodeproj -alltargets -configuration Release build
+cmake -B build -DCMAKE_BUILD_TYPE=Release        # add -DRENKYSUM_ARCHS=arm64 for a faster native-only macOS build
+cmake --build build -j
+# bundles land in build/RenkySum_artefacts/Release/{AU,VST3,Standalone}
+packaging/make_installer.sh build                 # optional: dist/RenkySum-<version>-macOS.pkg + bundles zip
 ```
 
-JUCE installs the built AU/VST3 into `~/Library/Audio/Plug-Ins/` automatically;
-in Live: Settings → Plug-Ins → Rescan. For instant browser prototyping, paste
-`RenkySum.dsp` into the [Faust Web IDE](https://faustide.grame.fr).
+To change the DSP, edit `RenkySum.dsp` and regenerate the processor (requires [Faust](https://faust.grame.fr),
+`brew install faust`):
+
+```sh
+faust2juce -jucemodulesdir ~/JUCE/modules RenkySum.dsp   # rewrites RenkySum/FaustPluginProcessor.cpp (+ .jucer)
+```
+
+The Projucer route still works too (`Projucer --resave RenkySum/RenkySum.jucer`, then
+`xcodebuild -project RenkySum/Builds/MacOSX/RenkySum.xcodeproj -alltargets -configuration Release build`).
+For instant browser prototyping, paste `RenkySum.dsp` into the [Faust Web IDE](https://faustide.grame.fr).

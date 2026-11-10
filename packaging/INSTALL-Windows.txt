@@ -1,0 +1,6 @@
+RenkySum - Windows install
+
+1. Copy the "RenkySum.vst3" folder to   C:\Program Files\Common Files\VST3\
+2. Rescan plug-ins in your DAW. The plug-in appears under "Renky Denk".
+3. "RenkySum.exe" is the standalone app; it runs from anywhere. If SmartScreen warns about an
+   unrecognized app, click More info > Run anyway (the build is not code-signed).
