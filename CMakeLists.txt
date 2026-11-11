@@ -61,6 +61,8 @@ juce_add_plugin(RenkySum
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
     VST3_CATEGORIES             Fx Distortion
     AU_MAIN_TYPE                kAudioUnitType_Effect
+    ICON_BIG                    "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon-1024.png"
+    ICON_SMALL                  "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon-128.png"
     COPY_PLUGIN_AFTER_BUILD     ${RENKYSUM_COPY_PLUGIN})
 
 target_sources(RenkySum PRIVATE
@@ -80,6 +82,7 @@ target_compile_definitions(RenkySum PUBLIC
 target_link_libraries(RenkySum
     PRIVATE
         juce::juce_audio_utils
+        juce::juce_dsp
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

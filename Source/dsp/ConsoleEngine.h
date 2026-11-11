@@ -1,6 +1,7 @@
 #pragma once
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_dsp/juce_dsp.h>
 #include <atomic>
 #include <memory>
 #include <vector>
@@ -30,8 +31,12 @@ public:
     void reset();
 
     // Stereo in-place processing. Pushes current parameter values into the
-    // DSP zones, then runs the Faust compute in chunks of maxBlockSize.
+    // DSP zones, then runs the Faust compute in chunks of maxBlockSize,
+    // optionally through 2x/4x oversampling (linear-phase half-band FIR).
     void process (juce::AudioBuffer<float>& buffer);
+
+    // Latency introduced by the current oversampling setting, in host samples.
+    int latencySamples() const { return currentLatency; }
 
     struct Meters
     {
@@ -52,13 +57,21 @@ private:
     };
 
     void pushParameters();
+    void selectOversampling (int factorIndex);   // 0 = off, 1 = 2x, 2 = 4x
+    void computeChunk (int numSamples, float* const* in, float* const* out);
 
     RenkySumDSP dsp;
     std::unique_ptr<FaustZoneMap> zones;
     std::vector<Link> links;
     std::atomic<float>* stageParam = nullptr;
+    std::atomic<float>* oversamplingParam = nullptr;
 
-    juce::AudioBuffer<float> scratch;
+    juce::AudioBuffer<float> scratch;   // host-rate input copy
+    juce::AudioBuffer<float> osOut;     // oversampled DSP output
+    std::unique_ptr<juce::dsp::Oversampling<float>> oversamplers[2]; // 2x, 4x
+    int osIndex = 0;                    // 0 = off, 1 = 2x, 2 = 4x
+    int currentLatency = 0;
+    double hostRate = 48000.0;
     int maxBlock = 0;
     Meters meterState;
 };

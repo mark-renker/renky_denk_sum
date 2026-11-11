@@ -29,13 +29,14 @@ private:
     rs::ui::SectionPanel outputPanel  { "OUTPUT" };
 
     rs::ui::SegmentSelector stage;
+    rs::ui::SegmentSelector oversampling;
     rs::ui::SegmentSelector model;
     rs::ui::Knob channel, drive, harmonics, depth, output;
     rs::ui::LedToggle autoGain, noise;
     rs::ui::StereoMeter meter;
     rs::ui::OverLamp overLamp;
 
-    juce::Label stageCaption, modelCaption;
+    juce::Label stageCaption, modelCaption, oversamplingCaption;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RenkySumEditor)
 };

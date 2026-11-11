@@ -20,6 +20,10 @@ const std::vector<ParamSpec>& specs()
         { id::output,    "Output",      "/RenkySum/Output/Output",    ParamKind::Float, -12, 12, 0.1f, 0,     Display::Decibels, {}, true },
         { id::autoGain,  "Auto Gain",   "/RenkySum/Output/Auto Gain",   ParamKind::Bool, 0, 1, 1, 0 },
         { id::noise,     "Noise Floor", "/RenkySum/Output/Noise Floor", ParamKind::Bool, 0, 1, 1, 0 },
+
+        // Engine-side (no Faust zone): the saturators run at 2x/4x the host rate.
+        { id::oversampling, "Oversampling", nullptr, ParamKind::Choice, 0, 2, 1, 1, Display::Plain,
+          { "OFF", "2X", "4X" } },
     };
     return table;
 }

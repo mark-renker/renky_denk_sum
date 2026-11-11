@@ -14,6 +14,7 @@ void RenkySumProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     engine.prepare (sampleRate, samplesPerBlock);
     stereoScratch.setSize (2, samplesPerBlock);
+    setLatencySamples (engine.latencySamples());
 }
 
 void RenkySumProcessor::reset()
@@ -47,6 +48,7 @@ void RenkySumProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
     if (numIn >= 2 && numOut >= 2)
     {
         engine.process (buffer);
+        updateLatency();
         return;
     }
 
@@ -64,6 +66,14 @@ void RenkySumProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
     buffer.copyFrom (0, 0, view, 0, 0, n);
     if (numOut >= 2)
         buffer.copyFrom (1, 0, view, 1, 0, n);
+    updateLatency();
+}
+
+void RenkySumProcessor::updateLatency()
+{
+    const int latency = engine.latencySamples();
+    if (latency != getLatencySamples())
+        setLatencySamples (latency);
 }
 
 juce::AudioProcessorEditor* RenkySumProcessor::createEditor()

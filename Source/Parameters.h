@@ -23,6 +23,7 @@ namespace id
     inline constexpr const char* output    = "output";
     inline constexpr const char* autoGain  = "autoGain";
     inline constexpr const char* noise     = "noise";
+    inline constexpr const char* oversampling = "oversampling";
 }
 
 enum class ParamKind { Float, Int, Choice, Bool };
@@ -32,7 +33,8 @@ struct ParamSpec
 {
     const char* id;
     const char* name;        // host-visible name
-    const char* faustPath;   // "/RenkySum/Group/Label" in the generated DSP
+    const char* faustPath;   // "/RenkySum/Group/Label" in the generated DSP, or nullptr for
+                             // parameters handled by the engine itself (e.g. oversampling)
     ParamKind kind;
     float min, max, step, defaultValue;
     Display display = Display::Plain;

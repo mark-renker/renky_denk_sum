@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#262522"/>
+      <stop offset="1" stop-color="#141311"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a3832"/>
+      <stop offset="1" stop-color="#26241f"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#e8a73f" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#e8a73f" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="1024" height="1024" rx="228" fill="url(#bg)"/>
+  <rect x="6" y="6" width="1012" height="1012" rx="224" fill="none" stroke="#3a3833" stroke-width="6"/>
+  <circle cx="512" cy="512" r="420" fill="url(#glow)"/>
+  <!-- track: 7 o'clock to 5 o'clock -->
+  <path d="M 265 759 A 350 350 0 1 1 759 759" fill="none" stroke="#2a2823" stroke-width="54" stroke-linecap="round"/>
+  <!-- value arc: 7 o'clock to ~2 o'clock -->
+  <path d="M 265 759 A 350 350 0 1 1 815 310" fill="none" stroke="#e8a73f" stroke-width="54" stroke-linecap="round"/>
+  <circle cx="512" cy="512" r="262" fill="#0f0e0d" opacity="0.6"/>
+  <circle cx="512" cy="500" r="256" fill="url(#face)" stroke="#4a4740" stroke-width="8"/>
+  <!-- pointer at ~2 o'clock -->
+  <g transform="translate(512 500) rotate(55)">
+    <rect x="-22" y="-236" width="44" height="150" rx="22" fill="#e8a73f"/>
+  </g>
+</svg>

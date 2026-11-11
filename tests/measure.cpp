@@ -17,7 +17,7 @@
 
 namespace
 {
-constexpr int    SR     = 48000;
+int              SR     = 48000;   // tests may switch this
 constexpr double TWO_PI = 6.283185307179586;
 
 struct Instance
@@ -243,6 +243,27 @@ int main()
         ch.run (hot, hot, l, r);
         peak = 0; for (float v : l) peak = std::max (peak, std::fabs (v));
         check (peak <= 1.0f, "channel stage encode never exceeds 0 dBFS");
+    }
+
+    // ---- 7. Sample-rate independence: THD at 96 kHz tracks 48 kHz
+    {
+        double thdAt[2] = { 0, 0 };
+        for (int pass = 0; pass < 2; ++pass)
+        {
+            SR = pass == 0 ? 48000 : 96000;
+            const int st = SR / 2, wn = SR, tot = st + wn;
+            const auto sig = sine (1000.0, 0.251189, tot);
+            Instance a; a.defaults();
+            std::vector<float> ol, orr; a.run (sig, sig, ol, orr);
+            const double h1 = tone (ol, 1000, st, wn);
+            double acc = 0;
+            for (int k = 2; k <= 5; ++k) { const double hk = tone (ol, 1000.0 * k, st, wn); acc += hk * hk; }
+            thdAt[pass] = std::sqrt (acc) / h1;
+        }
+        SR = 48000;
+        std::printf ("THD at 48 kHz %.3f %% vs 96 kHz %.3f %% (oversampling runs the DSP at the higher rate)\n",
+                     thdAt[0] * 100.0, thdAt[1] * 100.0);
+        check (std::fabs (thdAt[1] - thdAt[0]) / thdAt[0] < 0.25, "harmonic signature is sample-rate independent within 25 %");
     }
 
     std::printf ("%d failure(s)\n", failures);

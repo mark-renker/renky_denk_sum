@@ -67,6 +67,7 @@ component "$ART/Standalone/RenkySum.app"  "/Applications"                      "
 
 sed -e "s/@VERSION@/$VERSION/g" "$HERE/resources/welcome.html" > "$WORK/res/welcome.html"
 cp "$HERE/resources/conclusion.html" "$WORK/res/conclusion.html"
+cp "$ROOT/assets/installer-background.png" "$WORK/res/background.png"
 cat > "$WORK/distribution.xml" <<XML
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="2">
@@ -74,6 +75,8 @@ cat > "$WORK/distribution.xml" <<XML
   <organization>$ORG</organization>
   <welcome file="welcome.html" mime-type="text/html"/>
   <conclusion file="conclusion.html" mime-type="text/html"/>
+  <background file="background.png" alignment="bottomleft" scaling="none"/>
+  <background-darkAqua file="background.png" alignment="bottomleft" scaling="none"/>
   <options customize="always" require-scripts="false" hostArchitectures="arm64,x86_64"/>
   <domains enable_localSystem="true"/>
   <os-version min="11.0"/>

@@ -37,6 +37,8 @@ public:
     ConsoleEngine::Meters& meters() { return engine.meters(); }
 
 private:
+    void updateLatency();
+
     juce::AudioProcessorValueTreeState apvts;
     ConsoleEngine engine;
     juce::AudioBuffer<float> stereoScratch;

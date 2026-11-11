@@ -5,6 +5,7 @@ using namespace rs;
 RenkySumEditor::RenkySumEditor (RenkySumProcessor& p)
     : AudioProcessorEditor (p), renkyProcessor (p),
       stage     (p.parameters(), id::stage),
+      oversampling (p.parameters(), id::oversampling),
       model     (p.parameters(), id::model, true),
       channel   (p.parameters(), id::channel),
       drive     (p.parameters(), id::drive),
@@ -26,13 +27,17 @@ RenkySumEditor::RenkySumEditor (RenkySumProcessor& p)
     for (auto* c : std::initializer_list<juce::Component*> { &output, &autoGain, &noise, &meter, &overLamp })
         outputPanel.addAndMakeVisible (c);
 
-    for (auto* l : { &stageCaption, &modelCaption })
+    for (auto* l : { &stageCaption, &modelCaption, &oversamplingCaption })
     {
         l->setColour (juce::Label::textColourId, theme::textDim);
         l->setJustificationType (juce::Justification::centredLeft);
     }
     stageCaption.setText ("STAGE", juce::dontSendNotification);
     modelCaption.setText ("MODEL", juce::dontSendNotification);
+    oversamplingCaption.setText ("OVERSAMPLING", juce::dontSendNotification);
+    oversamplingCaption.setJustificationType (juce::Justification::centredRight);
+    addAndMakeVisible (oversamplingCaption);
+    addAndMakeVisible (oversampling);
 
     channel.getSlider().setTooltip ("Per-instance component tolerance seed. Use a different number on every track.");
     depth.getSlider().setTooltip ("Scales phase rotation, dynamic harmonics, rail sag, crosstalk and noise floor.");
@@ -67,11 +72,12 @@ void RenkySumEditor::paint (juce::Graphics& g)
 
     g.setColour (theme::accent);
     g.setFont (theme::caps (10.0f * s, 0.2f));
+    const auto subtitleW = juce::GlyphArrangement::getStringWidth (g.getCurrentFont(), "VINTAGE CONSOLE SUMMING");
     g.drawText ("VINTAGE CONSOLE SUMMING", header.withTrimmedLeft (titleW + 16.0f * s), juce::Justification::centredLeft, false);
 
     g.setColour (theme::textMuted);
     g.setFont (theme::caps (10.0f * s, 0.1f));
-    g.drawText ("v" JucePlugin_VersionString, header, juce::Justification::centredRight, false);
+    g.drawText ("v" JucePlugin_VersionString, header.withTrimmedLeft (titleW + subtitleW + 34.0f * s), juce::Justification::centredLeft, false);
 
     g.setColour (theme::panelEdge);
     g.fillRect (header.getX(), header.getBottom() - 1.0f, header.getWidth(), 1.0f);
@@ -81,7 +87,14 @@ void RenkySumEditor::resized()
 {
     const float s = scale();
     auto r = getLocalBounds();
-    r.removeFromTop (juce::roundToInt (54 * s));
+    auto header = r.removeFromTop (juce::roundToInt (54 * s)).reduced (juce::roundToInt (18 * s), 0);
+    {
+        auto osArea = header.removeFromRight (juce::roundToInt (150 * s)).withSizeKeepingCentre (juce::roundToInt (150 * s), juce::roundToInt (22 * s));
+        oversampling.setBounds (osArea);
+        auto cap = header.removeFromRight (juce::roundToInt (110 * s)).withSizeKeepingCentre (juce::roundToInt (104 * s), juce::roundToInt (16 * s));
+        oversamplingCaption.setBounds (cap);
+        oversamplingCaption.setFont (theme::caps (10.0f * s, 0.14f));
+    }
     r = r.reduced (juce::roundToInt (18 * s), juce::roundToInt (14 * s));
 
     const int gutter = juce::roundToInt (12 * s);
@@ -100,7 +113,7 @@ void RenkySumEditor::resized()
         auto c = consolePanel.content().reduced (0, juce::roundToInt (6 * s));
         const int capH = juce::roundToInt (16 * s);
         const int rowH = juce::roundToInt (30 * s);
-        auto left = c.removeFromLeft (juce::roundToInt ((float) c.getWidth() * 0.56f));
+        auto left = c.removeFromLeft (juce::roundToInt ((float) c.getWidth() * 0.6f));
         c.removeFromLeft (juce::roundToInt (10 * s));
 
         stageCaption.setBounds (left.removeFromTop (capH));

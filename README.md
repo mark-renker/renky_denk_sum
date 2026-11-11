@@ -40,6 +40,7 @@ channel 7 always sounds like channel 7, sessions recall exactly.
 | **Harmonics** | Intrinsic THD of the stage at nominal level — from near-clean to well past vintage spec. |
 | **3D Depth** | See below. |
 | **Output / Auto Gain / Noise Floor** | Trim, drive-compensation, and switchable console hiss. |
+| **Oversampling** | OFF / 2X / 4X (header). Runs the whole strip, including the saturators and the sin/asin stages, at 2 or 4 times the host rate through linear-phase half-band filters. Adds a few samples of latency, which is reported to the host. Default 2X. |
 | **BUS OVER** lamp | Lights when a MIX BUS instance receives a sum above −0.9 dBFS. The `asin()` decode is only exact up to that point; beyond it the remaining headroom is compressed smoothly rather than clipped, but the summing interaction is no longer the real one. Trim the channels or the DAW faders until it stays dark. |
 
 ## What "3D Depth" actually is
@@ -142,6 +143,7 @@ For instant browser prototyping, paste `dsp/RenkySum.dsp` into the
 | `Source/PluginProcessor.{h,cpp}` | JUCE processor: buses, state (versioned), mono handling. |
 | `Source/PluginEditor.{h,cpp}`, `Source/ui/` | Custom editor: theme, look-and-feel, knobs, segment selectors, LED toggles, stereo meter with BUS OVER lamp. Resizable, fixed aspect. |
 | `tests/measure.cpp` | Measurement harness and regression checks over the generated DSP. |
+| `assets/` | App icon and installer artwork (SVG sources plus the PNGs the build uses). |
 
 ### Adding a control
 
@@ -152,7 +154,8 @@ For instant browser prototyping, paste `dsp/RenkySum.dsp` into the
 3. Add a widget in `PluginEditor` and place it in `resized()`.
 
 The engine asserts in debug builds if a table row's path no longer exists in
-the DSP, so renames are caught at first run.
+the DSP, so renames are caught at first run. A row with a null Faust path is
+an engine-side parameter (oversampling is one); read it in `ConsoleEngine`.
 
 ## Licensing
 

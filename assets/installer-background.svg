@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="418" viewBox="0 0 620 418">
+  <!-- Installer sidebar artwork. Only the left ~180 px is visible beside the content pane,
+       and the step list occupies the top ~280 px of that strip. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a1917"/>
+      <stop offset="1" stop-color="#121110"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a3832"/>
+      <stop offset="1" stop-color="#26241f"/>
+    </linearGradient>
+  </defs>
+  <rect width="620" height="418" fill="url(#bg)"/>
+  <g transform="translate(40 296) scale(0.095)">
+    <path d="M 265 759 A 350 350 0 1 1 759 759" fill="none" stroke="#2a2823" stroke-width="54" stroke-linecap="round"/>
+    <path d="M 265 759 A 350 350 0 1 1 815 310" fill="none" stroke="#e8a73f" stroke-width="54" stroke-linecap="round"/>
+    <circle cx="512" cy="500" r="256" fill="url(#face)" stroke="#4a4740" stroke-width="8"/>
+    <g transform="translate(512 500) rotate(55)"><rect x="-22" y="-236" width="44" height="150" rx="22" fill="#e8a73f"/></g>
+  </g>
+  <text x="36" y="396" font-family="Helvetica Neue, Helvetica, Arial" font-size="14" font-weight="bold" letter-spacing="3.5" fill="#e2dccd">RENKYSUM</text>
+  <text x="37" y="410" font-family="Helvetica Neue, Helvetica, Arial" font-size="6.2" font-weight="bold" letter-spacing="1.6" fill="#e8a73f">VINTAGE CONSOLE SUMMING</text>
+</svg>
