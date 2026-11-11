@@ -1,5 +1,5 @@
 # Tag v* -> macOS universal .pkg installer (+ raw bundles zip) and Windows zip, attached to a GitHub Release.
-# No Faust needed: RenkySum/FaustPluginProcessor.cpp is committed; JUCE 8.0.6 is fetched by CMake.
+# No Faust needed: Source/dsp/RenkySumDSP.h (generated from dsp/RenkySum.dsp) is committed; JUCE 8.0.6 is fetched by CMake.
 name: release
 on:
   push:

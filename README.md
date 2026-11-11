@@ -1,6 +1,6 @@
 # RenkySum
 
-A per-channel **vintage console summing** plugin (Faust → AU/VST3) in the spirit of
+A per-channel **vintage console summing** plugin (Faust DSP in a JUCE AU/VST3) in the spirit of
 Sonimus Satson, Waves NLS, and airwindows Console — but with an adjustable
 harmonic-distortion amount, a **3D Depth** control, and per-instance
 **component tolerances** so every track gets its own subtly different strip.
@@ -40,6 +40,7 @@ channel 7 always sounds like channel 7, sessions recall exactly.
 | **Harmonics** | Intrinsic THD of the stage at nominal level — from near-clean to well past vintage spec. |
 | **3D Depth** | See below. |
 | **Output / Auto Gain / Noise Floor** | Trim, drive-compensation, and switchable console hiss. |
+| **BUS OVER** lamp | Lights when a MIX BUS instance receives a sum above −0.9 dBFS. The `asin()` decode is only exact up to that point; beyond it the remaining headroom is compressed smoothly rather than clipped, but the summing interaction is no longer the real one. Trim the channels or the DAW faders until it stays dark. |
 
 ## What "3D Depth" actually is
 
@@ -76,14 +77,22 @@ exaggerated — and Auto Gain keeps A/B comparisons loudness-honest.
 
 ## Measured behaviour (48 kHz, 1 kHz sine)
 
-- Default settings, −12 dBFS: THD 0.59 % (H2 −50 dB, H3 −46 dB) — "driven
-  vintage" territory; Harmonics = 0 measures ≈ −70 dB residuals.
-- Encode→decode null: channel-stage sin() adds −39 dB H3, which the bus-stage
-  asin() cancels to −80 dB. Interaction survives only *between* channels.
-- Channel 1 vs channel 2 (same audio): −40 dB decorrelation. Channel 1 vs
-  channel 1: bit-identical (deterministic recall).
-- Rail sag at full Depth on hot material: ≈ 0.2–0.35 dB program-dependent dip.
-- Noise floor at full Depth: −88 dBFS RMS, decorrelated per side/channel.
+These figures come from `tests/measure.cpp`, which drives the generated DSP
+directly and fails the build's test step if they drift (`ctest --test-dir build`).
+
+- Default settings, −12 dBFS: THD 0.55 % (H2 −54 dB, H3 −46 dB) — "driven
+  vintage" territory. Harmonics = 0 measures ≈ −150 dB H2 (only the
+  channel-stage `sin()` encode's own H3 remains, which the bus removes).
+- Encode→decode null at −3 dBFS: channel-stage `sin()` adds −33 dB H3, which
+  the bus-stage `asin()` cancels to −74 dB. Interaction survives only *between*
+  channels.
+- Channel 1 vs channel 2 (same audio): −42 dB decorrelation. Channel 1 vs
+  channel 1: bit-identical. Strip gain spread across all 32 channels: 0.10 dB.
+- Noise floor at full Depth: −92 dBFS RMS. Correlation L/R and between
+  channel 1 and channel 2 is below 0.01, so 32 instances of hiss sum as noise,
+  not as one louder noise.
+- MIX BUS fed +2.9 dBFS: output stays bounded (+2.1 dBFS peak, no clipping
+  artefacts). Channel stage output never exceeds 0 dBFS.
 
 ## Workflow in Ableton
 
@@ -96,23 +105,57 @@ exaggerated — and Auto Gain keeps A/B comparisons loudness-honest.
 
 ## Build from source
 
-`RenkySum/FaustPluginProcessor.cpp` is the committed faust2juce output of `RenkySum.dsp`, so a plain CMake + JUCE
-build needs no Faust (JUCE 8.0.6 is used from `~/JUCE` if present, otherwise fetched):
+The DSP lives in `dsp/RenkySum.dsp`; `Source/dsp/RenkySumDSP.h` is the committed
+Faust output, so a plain CMake + JUCE build needs no Faust (JUCE 8.0.6 is used
+from `~/JUCE` if present, otherwise fetched):
 
 ```sh
 cmake -B build -DCMAKE_BUILD_TYPE=Release        # add -DRENKYSUM_ARCHS=arm64 for a faster native-only macOS build
 cmake --build build -j
+ctest --test-dir build                            # DSP measurements (tests/measure.cpp)
 # bundles land in build/RenkySum_artefacts/Release/{AU,VST3,Standalone}
 packaging/make_installer.sh build                 # optional: dist/RenkySum-<version>-macOS.pkg + bundles zip
 ```
 
-To change the DSP, edit `RenkySum.dsp` and regenerate the processor (requires [Faust](https://faust.grame.fr),
-`brew install faust`):
+Add `-DRENKYSUM_COPY_PLUGIN=ON` to have each build copied into
+`~/Library/Audio/Plug-Ins` automatically.
+
+To change the DSP, edit `dsp/RenkySum.dsp` and regenerate the header
+(requires [Faust](https://faust.grame.fr), `brew install faust`):
 
 ```sh
-faust2juce -jucemodulesdir ~/JUCE/modules RenkySum.dsp   # rewrites RenkySum/FaustPluginProcessor.cpp (+ .jucer)
+scripts/regen_dsp.sh            # or: cmake --build build --target regen_dsp
 ```
 
-The Projucer route still works too (`Projucer --resave RenkySum/RenkySum.jucer`, then
-`xcodebuild -project RenkySum/Builds/MacOSX/RenkySum.xcodeproj -alltargets -configuration Release build`).
-For instant browser prototyping, paste `RenkySum.dsp` into the [Faust Web IDE](https://faustide.grame.fr).
+For instant browser prototyping, paste `dsp/RenkySum.dsp` into the
+[Faust Web IDE](https://faustide.grame.fr).
+
+## Code layout
+
+| Path | Role |
+|---|---|
+| `dsp/RenkySum.dsp` | All signal processing. Controls are grouped `Console / Colour / Output`. |
+| `Source/dsp/RenkySumDSP.h` | Generated from the above. Never edit by hand. |
+| `Source/dsp/FaustDsp.h`, `FaustZoneMap.h` | Tiny Faust runtime interfaces and a path → control-zone map, so the build does not depend on Faust's headers. |
+| `Source/Parameters.{h,cpp}` | **The parameter table.** One row per control: host id, Faust path, range, display format. Drives the APVTS layout, the DSP binding and the editor's formatting. |
+| `Source/dsp/ConsoleEngine.{h,cpp}` | Owns the DSP, pushes parameters into it, runs it in chunks, publishes meter/over data. The place to add oversampling, lookahead, A/B, etc. |
+| `Source/PluginProcessor.{h,cpp}` | JUCE processor: buses, state (versioned), mono handling. |
+| `Source/PluginEditor.{h,cpp}`, `Source/ui/` | Custom editor: theme, look-and-feel, knobs, segment selectors, LED toggles, stereo meter with BUS OVER lamp. Resizable, fixed aspect. |
+| `tests/measure.cpp` | Measurement harness and regression checks over the generated DSP. |
+
+### Adding a control
+
+1. Add the widget to `dsp/RenkySum.dsp` (inside one of the existing groups,
+   or a new `h:` group) and run `scripts/regen_dsp.sh`.
+2. Add one row to `rs::specs()` in `Source/Parameters.cpp` with the matching
+   Faust path (`/RenkySum/<Group>/<Label>`).
+3. Add a widget in `PluginEditor` and place it in `resized()`.
+
+The engine asserts in debug builds if a table row's path no longer exists in
+the DSP, so renames are caught at first run.
+
+## Licensing
+
+The project's own code and DSP are MIT (see `LICENSE`). Binaries also contain
+JUCE, which is dual-licensed; distributing builds without a JUCE licence falls
+under JUCE's AGPLv3 terms. The splash screen is disabled on that basis.

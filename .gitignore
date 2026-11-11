@@ -1,13 +1,15 @@
-# JUCE / Xcode build intermediates (RenkySum/ itself is regenerable via faust2juce)
-RenkySum/Builds/*/build/
-RenkySum/JuceLibraryCode/
-RenkySum/Builds/Android/
-RenkySum/Builds/VisualStudio*/
-RenkySum/Builds/LinuxMakefile/
-RenkySum/Builds/iOS/
+# CMake build trees and installer output
+build/
+build-*/
+build*/
+cmake-build-*/
+dist/
+
+# Faust temp output
 faustAUtmp.*/
 *.o
+
+# OS / editor
 .DS_Store
-# CMake builds and installer output
-build*/
-dist/
+.vscode/
+.idea/
