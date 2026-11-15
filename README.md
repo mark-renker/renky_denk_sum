@@ -1,9 +1,30 @@
-# RenkySum
+# RenkySum — Vintage Console Summing
 
-A per-channel **vintage console summing** plugin (Faust DSP in a JUCE AU/VST3) in the spirit of
-Sonimus Satson, Waves NLS, and airwindows Console — but with an adjustable
-harmonic-distortion amount, a **3D Depth** control, and per-instance
-**component tolerances** so every track gets its own subtly different strip.
+![RenkySum editor](docs/images/editor.png)
+
+A per-channel **vintage console summing** plug-in in the spirit of Sonimus
+Satson, Waves NLS and airwindows Console. One instance goes on every track and
+one on the master; together they behave like the strips and summing amp of a
+real desk, with three things the usual per-track saturators leave out:
+
+- **Per-instance component tolerances**: the **Channel** number seeds a
+  deterministic spread of gain trim, HF pole, transformer asymmetry, crosstalk
+  and noise, so 32 instances are 32 subtly different strips, and channel 7 is
+  the same strip in every session and on every machine.
+- **Complementary summing**: CHANNEL instances encode with `sin()`, the DAW
+  sums, the MIX BUS instance decodes with `asin()`. One channel nulls exactly;
+  several interact at the sum like a resistive summing network.
+- **3D Depth**: one knob that scales the five measurable mechanisms behind the
+  "dimensional" quality of analog summing (phase rotation, programme-dependent
+  harmonics, rail sag, phase-blurred crosstalk, noise floor).
+
+Three console models (CLASS-A XFMR, VCA BUS, DISCRETE OP-AMP), adjustable
+harmonics, switchable 2x/4x oversampling, loudness-honest Auto Gain and a
+BUS OVER lamp that tells you when the decode has left its exact region.
+
+Formats: AU, VST3 and Standalone (macOS, Apple Silicon and Intel), VST3 and
+Standalone (Windows). DSP is written in [Faust](https://faust.grame.fr) and
+compiled into a JUCE 8 plug-in with a custom editor.
 
 ## Install (no build needed)
 
@@ -131,7 +152,7 @@ scripts/regen_dsp.sh            # or: cmake --build build --target regen_dsp
 For instant browser prototyping, paste `dsp/RenkySum.dsp` into the
 [Faust Web IDE](https://faustide.grame.fr).
 
-## Code layout
+## Repository layout
 
 | Path | Role |
 |---|---|
@@ -156,6 +177,20 @@ For instant browser prototyping, paste `dsp/RenkySum.dsp` into the
 The engine asserts in debug builds if a table row's path no longer exists in
 the DSP, so renames are caught at first run. A row with a null Faust path is
 an engine-side parameter (oversampling is one); read it in `ConsoleEngine`.
+
+## Tests
+
+```sh
+cmake --build build --target renkysum_measure && ctest --test-dir build --output-on-failure
+```
+
+`tests/measure.cpp` drives the generated DSP class directly (no JUCE, no audio
+device) and checks 15 figures: THD and harmonic balance at the default
+setting, the clean-setting residual, the encode/decode null, channel-to-channel
+decorrelation and bit-exact recall, strip gain spread across all 32 channels,
+noise-floor level and decorrelation (L/R and between channels), bounded output
+on an over-range bus input, and sample-rate independence of the harmonic
+signature (which oversampling relies on). `auval` passes for the AU.
 
 ## Licensing
 
